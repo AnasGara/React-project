@@ -1,32 +1,32 @@
-import * as React from 'react';
-import axios from 'axios';
+import * as React from "react";
+import axios from "axios";
 
 const storiesReducer = (state, action) => {
   switch (action.type) {
-    case 'STORIES_FETCH_INIT':
+    case "STORIES_FETCH_INIT":
       return {
         ...state,
         isLoading: true,
         isError: false,
       };
-    case 'STORIES_FETCH_SUCCESS':
+    case "STORIES_FETCH_SUCCESS":
       return {
         ...state,
         isLoading: false,
         isError: false,
         data: action.payload,
       };
-    case 'STORIES_FETCH_FAILURE':
+    case "STORIES_FETCH_FAILURE":
       return {
         ...state,
         isLoading: false,
         isError: true,
       };
-    case 'REMOVE_STORY':
+    case "REMOVE_STORY":
       return {
         ...state,
         data: state.data.filter(
-          (story) => action.payload.objectID !== story.objectID
+          (story) => action.payload.objectID !== story.objectID,
         ),
       };
     default:
@@ -36,7 +36,7 @@ const storiesReducer = (state, action) => {
 
 const useStorageState = (key, initialState) => {
   const [value, setValue] = React.useState(
-    localStorage.getItem(key) || initialState
+    localStorage.getItem(key) || initialState,
   );
 
   React.useEffect(() => {
@@ -46,35 +46,36 @@ const useStorageState = (key, initialState) => {
   return [value, setValue];
 };
 
-const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
+const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
 
 const App = () => {
-  const [searchTerm, setSearchTerm] = useStorageState(
-    'search',
-    'React'
-  );
+  const [searchTerm, setSearchTerm] = useStorageState("search", "React");
 
-  const [url, setUrl] = React.useState(
-    `${API_ENDPOINT}${searchTerm}`
-  );
+  const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
 
-  const [stories, dispatchStories] = React.useReducer(
-    storiesReducer,
-    { data: [], isLoading: false, isError: false }
-  );
+  const [stories, dispatchStories] = React.useReducer(storiesReducer, {
+    data: [],
+    isLoading: false,
+    isError: false,
+  });
 
   const handleFetchStories = React.useCallback(async () => {
-    dispatchStories({ type: 'STORIES_FETCH_INIT' });
+    dispatchStories({ type: "STORIES_FETCH_INIT" });
 
     try {
-      const result = await axios.get(url);
+      const result = await axios.get(url, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
+        },
+      });
 
       dispatchStories({
-        type: 'STORIES_FETCH_SUCCESS',
+        type: "STORIES_FETCH_SUCCESS",
         payload: result.data.hits,
       });
     } catch {
-      dispatchStories({ type: 'STORIES_FETCH_FAILURE' });
+      dispatchStories({ type: "STORIES_FETCH_FAILURE" });
     }
   }, [url]);
 
@@ -84,7 +85,7 @@ const App = () => {
 
   const handleRemoveStory = (item) => {
     dispatchStories({
-      type: 'REMOVE_STORY',
+      type: "REMOVE_STORY",
       payload: item,
     });
   };
@@ -122,11 +123,7 @@ const App = () => {
   );
 };
 
-const SearchForm = ({
-  searchTerm,
-  onSearchInput,
-  onSearchSubmit,
-}) => (
+const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => (
   <form onSubmit={onSearchSubmit}>
     <InputWithLabel
       id="search"
@@ -146,7 +143,7 @@ const SearchForm = ({
 const InputWithLabel = ({
   id,
   value,
-  type = 'text',
+  type = "text",
   onInputChange,
   isFocused,
   children,
@@ -177,11 +174,7 @@ const InputWithLabel = ({
 const List = ({ list, onRemoveItem }) => (
   <ul>
     {list.map((item) => (
-      <Item
-        key={item.objectID}
-        item={item}
-        onRemoveItem={onRemoveItem}
-      />
+      <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />
     ))}
   </ul>
 );
